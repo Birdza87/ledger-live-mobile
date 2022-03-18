@@ -1,10 +1,9 @@
 // @flow
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { RectButton } from "react-native-gesture-handler";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import { useNftMetadata } from "@ledgerhq/live-common/lib/nft";
 import type { CollectionWithNFT } from "@ledgerhq/live-common/lib/nft";
-import { useTheme } from "@react-navigation/native";
 import Skeleton from "../Skeleton";
 import NftImage from "./NftImage";
 import LText from "../LText";
@@ -12,41 +11,43 @@ import LText from "../LText";
 type Props = {
   collection: CollectionWithNFT,
   onCollectionPress: () => void,
+  onLongPress: () => void,
 };
 
-function NftCollectionRow({ collection, onCollectionPress }: Props) {
-  const { colors } = useTheme();
+function NftCollectionRow({
+  collection,
+  onCollectionPress,
+  onLongPress,
+}: Props) {
   const { contract, nfts } = collection;
   const { status, metadata } = useNftMetadata(contract, nfts[0].tokenId);
   const loading = status === "loading";
 
   return (
-    <RectButton
-      style={styles.container}
-      underlayColor={colors.grey}
-      onPress={onCollectionPress}
-    >
-      <View accessible style={styles.innerContainer}>
-        <NftImage
-          style={styles.collectionImage}
-          status={status}
-          src={metadata?.media}
-        />
-        <View style={styles.inner}>
-          <Skeleton style={styles.collectionNameSkeleton} loading={loading}>
-            <LText
-              semiBold
-              ellipsizeMode="tail"
-              numberOfLines={2}
-              style={styles.collectionName}
-            >
-              {metadata?.tokenName || collection.contract}
-            </LText>
-          </Skeleton>
+    <TouchableOpacity onPress={onCollectionPress} onLongPress={onLongPress}>
+      <View style={styles.container}>
+        <View accessible style={styles.innerContainer}>
+          <NftImage
+            style={styles.collectionImage}
+            status={status}
+            src={metadata?.media}
+          />
+          <View style={styles.inner}>
+            <Skeleton style={styles.collectionNameSkeleton} loading={loading}>
+              <LText
+                semiBold
+                ellipsizeMode="tail"
+                numberOfLines={2}
+                style={styles.collectionName}
+              >
+                {metadata?.tokenName || collection.contract}
+              </LText>
+            </Skeleton>
+          </View>
+          <LText semiBold>{collection.nfts.length}</LText>
         </View>
-        <LText semiBold>{collection.nfts.length}</LText>
       </View>
-    </RectButton>
+    </TouchableOpacity>
   );
 }
 

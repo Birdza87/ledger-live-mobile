@@ -150,6 +150,7 @@ export default function NftCollectionsList({ account }: Props) {
         <NftCollectionRow
           collection={item}
           onCollectionPress={() => navigateToCollection(item)}
+          onLongPress={() => alert('TODO: continue feature')}
         />
       </Card>
     ),
