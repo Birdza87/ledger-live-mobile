@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 import take from "lodash/take";
 import { Trans, useTranslation } from "react-i18next";
@@ -18,6 +18,9 @@ import ArrowRight from "../../icons/ArrowRight";
 import ReceiveIcon from "../../icons/Receive";
 import Button from "../../components/Button";
 import LText from "../../components/LText";
+import NftCollectionOptionsMenu from "../../components/Nft/NftCollectionOptionsMenu";
+import { useSelector } from "react-redux";
+import { hiddenNftCollectionsSelector } from "../../reducers/settings";
 
 const MAX_COLLECTIONS_TO_SHOW = 3;
 
@@ -38,7 +41,28 @@ export default function NftCollectionsList({ account }: Props) {
   const { colors } = useTheme();
   const navigation = useNavigation();
   const { nfts } = account;
-  const nftCollections = useMemo(() => nftsByCollections(nfts), [nfts]);
+  const hiddenNftCollections = useSelector(hiddenNftCollectionsSelector);
+  const nftCollections = useMemo(
+    () =>
+      nftsByCollections(nfts).filter(
+        collection =>
+          !hiddenNftCollections.includes(
+            `${account.id}|${collection.contract}`,
+          ),
+      ),
+    [nfts, hiddenNftCollections, account.id],
+  );
+
+  const [isCollectionMenuOpen, setIsCollectionMenuOpen] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState();
+
+  const onSelectCollection = useCallback(
+    collection => {
+      setSelectedCollection(collection);
+      setIsCollectionMenuOpen(true);
+    },
+    [setSelectedCollection, setIsCollectionMenuOpen],
+  );
 
   const navigateToReceive = useCallback(
     () =>
@@ -150,7 +174,7 @@ export default function NftCollectionsList({ account }: Props) {
         <NftCollectionRow
           collection={item}
           onCollectionPress={() => navigateToCollection(item)}
-          onLongPress={() => alert('TODO: continue feature')}
+          onLongPress={() => onSelectCollection(item)}
         />
       </Card>
     ),
@@ -166,6 +190,14 @@ export default function NftCollectionsList({ account }: Props) {
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}
       />
+      {selectedCollection && (
+        <NftCollectionOptionsMenu
+          isOpen={isCollectionMenuOpen}
+          collection={selectedCollection}
+          onClose={() => setIsCollectionMenuOpen(false)}
+          account={account}
+        />
+      )}
     </View>
   );
 }
